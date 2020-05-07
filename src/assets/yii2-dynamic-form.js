@@ -54,19 +54,37 @@
             _updateAttributes(widgetOptions);
             _restoreSpecialJs(widgetOptions);
             _fixFormValidaton(widgetOptions);
-        }
+        },
+
+        getWidgetOptions: function () {
+            const widgetOptions = eval($(this).attr('data-dynamicform'));
+            return jQuery.extend({}, widgetOptions);
+        },
     };
 
     var _parseTemplate = function(widgetOptions) {
 
         var $template = $(widgetOptions.template);
+        const $customTemplate = $(widgetOptions.customTemplate);
+
+        // replace template with customTemplate
+        $customTemplate.children().each(function() {
+            const elem = $(this);
+            const selector = `${elem.prop('tagName')}.${elem.attr('class')}`;
+            $template.find(selector).replaceWith(elem);
+        });
+
         $template.find('div[data-dynamicform]').each(function(){
             var widgetOptions = eval($(this).attr('data-dynamicform'));
-            if ($(widgetOptions.widgetItem).length > 1) {
-                var item = $(this).find(widgetOptions.widgetItem).first()[0].outerHTML;
-                $(this).find(widgetOptions.widgetBody).html(item);
+            $(this).find(widgetOptions.widgetItem).remove();
+            if (widgetOptions.min > 0) {
+                for (let i = 0; i < widgetOptions.min; i++) {
+                    const item = widgetOptions.template.clone();
+                    $(this).find(widgetOptions.widgetBody).append(item);
+                }
             }
         });
+        console.log('>>> ', $template[0]);
 
         $template.find('input, textarea, select').each(function() {
             if ($(this).is(':checkbox') || $(this).is(':radio')) {
@@ -82,7 +100,11 @@
 
                 $(this).prop('checked', false);
             } else if($(this).is('select')) {
-                $(this).find('option:selected').removeAttr("selected");
+                // package-staff-id : Default value = login user
+                if(!$(this).hasClass('package-staff-id'))
+                {
+                    $(this).find('option:selected').removeAttr("selected");
+                }
             } else {
                 $(this).val('');
             }
@@ -124,7 +146,9 @@
             $newclone = $toclone.clone(false, false);
 
             // Distinct dynamic form items recursively
-            __distinctRecursive('[data-dynamicform^=dynamicform]', $newclone);
+            // __distinctRecursive('[data-dynamicform^=dynamicform]', $newclone);
+
+            $elem.closest('.' + widgetOptions.widgetContainer).triggerHandler(events.beforeInsert, $newclone);
 
             if (widgetOptions.insertPosition === 'top') {
                 $elem.closest('.' + widgetOptions.widgetContainer).find(widgetOptions.widgetBody).prepend($newclone);
@@ -135,7 +159,7 @@
             _updateAttributes(widgetOptions);
             _restoreSpecialJs(widgetOptions);
             _fixFormValidaton(widgetOptions);
-            $elem.closest('.' + widgetOptions.widgetContainer).triggerHandler(events.afterInsert, $newclone);
+            $elem.closest('.' + widgetOptions.widgetContainer).trigger(events.afterInsert, $newclone);
         } else {
             // trigger a custom event for hooking
             $elem.closest('.' + widgetOptions.widgetContainer).triggerHandler(events.limitReached, widgetOptions.limit);
@@ -257,7 +281,7 @@
 
     var _updateAttrName = function($elem, index) {
         var name = $elem.attr('name');
-
+        console.log('>>> elem', $elem);
         if (name !== undefined) {
             var matches = name.match(regexName);
 
@@ -291,7 +315,8 @@
 
         $(widgetOptionsRoot.widgetItem).each(function(index) {
             var $item = $(this);
-            $(this).find('*').each(function() {
+            const selector = 'input, select, textarea';
+            $(this).find(selector).each(function() {
                 // update "id" attribute
                 _updateAttrID($(this), index);
 

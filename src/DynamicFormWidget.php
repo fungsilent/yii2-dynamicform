@@ -8,6 +8,7 @@
 namespace kidzen\dynamicform;
 
 use Yii;
+use app\helpers\Debug;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\base\InvalidConfigException;
@@ -21,6 +22,7 @@ use Symfony\Component\DomCrawler\Crawler;
 class DynamicFormWidget extends \yii\base\Widget
 {
     const WIDGET_NAME = 'dynamicform';
+    public $customTemplate;
     /**
      * @var string
      */
@@ -132,6 +134,7 @@ class DynamicFormWidget extends \yii\base\Widget
         $this->_options['formId']          = $this->formId;
         $this->_options['min']             = $this->min;
         $this->_options['fields']          = [];
+        $this->_options['customTemplate']  = $this->customTemplate;
 
         foreach ($this->formFields as $field) {
              $this->_options['fields'][] = [
@@ -204,7 +207,7 @@ class DynamicFormWidget extends \yii\base\Widget
         // add a click handler for the clone button
         $js = 'jQuery("#' . $this->formId . '").on("click", "' . $this->insertButton . '", function(e) {'. "\n";
         $js .= "    e.preventDefault();\n";
-        $js .= '    jQuery(".' .  $this->widgetContainer . '").triggerHandler("beforeInsert", [jQuery(this)]);' . "\n";
+        // $js .= '    jQuery(".' .  $this->widgetContainer . '").triggerHandler("beforeInsert", [jQuery(this)]);' . "\n";
         $js .= '    jQuery(".' .  $this->widgetContainer . '").yiiDynamicForm("addItem", '. $this->_hashVar . ", e, jQuery(this));\n";
         $js .= "});\n";
         $view->registerJs($js, $view::POS_READY);
@@ -232,6 +235,7 @@ class DynamicFormWidget extends \yii\base\Widget
         $document = new \DOMDocument('1.0', \Yii::$app->charset);
         $document->appendChild($document->importNode($results->first()->getNode(0), true));
         $this->_options['template'] = trim($document->saveHTML());
+        $this->_options['customTemplate'] = $this->setCustomTemplate($content);
 
         if (isset($this->_options['min']) && $this->_options['min'] === 0 && $this->model->isNewRecord) {
             $content = $this->removeItems($content);
@@ -266,5 +270,20 @@ class DynamicFormWidget extends \yii\base\Widget
         });
 
         return $crawler->html();
+    }
+
+    private function setCustomTemplate($content)
+    {
+        if (!$this->_options['customTemplate']) {
+            return null;
+        }
+        $crawler = new Crawler();
+        $crawler->addHTMLContent($content, \Yii::$app->charset);
+        $document = new \DOMDocument('1.0', \Yii::$app->charset);
+
+        $customTemplate = $crawler->filter($this->customTemplate)->filter($this->widgetItem);
+        $customTemplate = $customTemplate->first()->getNode(0);
+        $document->appendChild($document->importNode($customTemplate, true));
+        return trim($document->saveHTML());
     }
 }
