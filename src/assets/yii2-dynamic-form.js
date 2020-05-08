@@ -84,7 +84,6 @@
                 }
             }
         });
-        console.log('>>> ', $template[0]);
 
         $template.find('input, textarea, select').each(function() {
             if ($(this).is(':checkbox') || $(this).is(':radio')) {
@@ -281,7 +280,6 @@
 
     var _updateAttrName = function($elem, index) {
         var name = $elem.attr('name');
-        console.log('>>> elem', $elem);
         if (name !== undefined) {
             var matches = name.match(regexName);
 
@@ -400,7 +398,7 @@
         var $hasDatepicker = $(widgetOptionsRoot.widgetItem).find('[data-krajee-kvdatepicker]');
         if ($hasDatepicker.length > 0) {
             $hasDatepicker.each(function() {
-                $(this).parent().removeData().kvDatepicker('remove');
+                $(this).parent().removeData().kvDatepicker('destroy');
                 $(this).parent().kvDatepicker(eval($(this).attr('data-krajee-kvdatepicker')));
             });
         }
