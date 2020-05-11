@@ -527,9 +527,9 @@
                 var $id = $('#' + id);
                 var configSelect2 = eval($(this).attr('data-krajee-select2'));
 
-                // remove loading
+                // remove template loading
                 const matches = id.match(regexID);
-                $(`.loading-${matches[1]}-${matches[3]}`).remove();
+                $(`.loading-${matches[1]}-0-${matches[3]}`).remove();
 
                 if ($(this).data('select2')) {
                     $(this).select2('destroy');
