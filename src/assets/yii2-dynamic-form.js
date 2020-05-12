@@ -65,14 +65,6 @@
     var _parseTemplate = function(widgetOptions) {
 
         var $template = $(widgetOptions.template);
-        const $customTemplate = $(widgetOptions.customTemplate);
-
-        // replace template with customTemplate
-        $customTemplate.children().each(function() {
-            const elem = $(this);
-            const selector = `${elem.prop('tagName')}.${elem.attr('class')}`;
-            $template.find(selector).replaceWith(elem);
-        });
 
         $template.find('div[data-dynamicform]').each(function(){
             var widgetOptions = eval($(this).attr('data-dynamicform'));
@@ -109,6 +101,15 @@
             }
         });
 
+        const $customTemplate = $(widgetOptions.customTemplate);
+
+        // replace template with customTemplate
+        $customTemplate.children().each(function() {
+            const elem = $(this);
+            const selector = `${elem.prop('tagName')}.${elem.attr('class')}`;
+            $template.find(selector).replaceWith(elem);
+        });
+        
         // remove "error/success" css class
         var yiiActiveFormData = $('#' + widgetOptions.formId).yiiActiveForm('data');
         if(yiiActiveFormData && yiiActiveFormData.settings){
