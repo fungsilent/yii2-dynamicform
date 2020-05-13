@@ -405,6 +405,8 @@
             $hasDatepicker.each(function() {
                 $(this).parent().removeData().kvDatepicker('destroy');
                 $(this).parent().kvDatepicker(eval($(this).attr('data-krajee-kvdatepicker')));
+                initDPRemove($(this).attr('id'));
+                initDPAddon($(this).attr('id'));
             });
         }
 
