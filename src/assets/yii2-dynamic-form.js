@@ -66,22 +66,20 @@
 
         let $template;
         
-        if (widgetOptions.customTemplate) {
-            $template = $(widgetOptions.customTemplate);
-        } else {
-            $template = $(widgetOptions.template);
-
-            $template.find('div[data-dynamicform]').each(function(){
-                var widgetOptions = eval($(this).attr('data-dynamicform'));
-                $(this).find(widgetOptions.widgetItem).remove();
-                if (widgetOptions.min > 0) {
-                    for (let i = 0; i < widgetOptions.min; i++) {
-                        const item = widgetOptions.template.clone();
-                        $(this).find(widgetOptions.widgetBody).append(item);
-                    }
+        $template = widgetOptions.customTemplate ? $(widgetOptions.customTemplate) : $(widgetOptions.template);
+        
+        $template.find('div[data-dynamicform]').each(function(){
+            var widgetOptions = eval($(this).attr('data-dynamicform'));
+            $(this).find(widgetOptions.widgetItem).remove();
+            if (widgetOptions.min > 0) {
+                for (let i = 0; i < widgetOptions.min; i++) {
+                    const item = widgetOptions.template.clone();
+                    $(this).find(widgetOptions.widgetBody).append(item);
                 }
-            });
+            }
+        });
 
+        if (!widgetOptions.customTemplate) {
             $template.find('input, textarea, select').each(function() {
                 if ($(this).is(':checkbox') || $(this).is(':radio')) {
                     var type         = ($(this).is(':checkbox')) ? 'checkbox' : 'radio';
@@ -114,13 +112,6 @@
             }
         }
         
-        // replace template with customTemplate
-        // const $customTemplate = $(widgetOptions.customTemplate);
-        // $customTemplate.children().each(function() {
-        //     const elem = $(this);
-        //     const selector = `${elem.prop('tagName')}.${elem.attr('class')}`;
-        //     $template.find(selector).replaceWith(elem);
-        // });
         return $template;
     };
 
@@ -152,7 +143,7 @@
             // Distinct dynamic form items recursively
             // __distinctRecursive('[data-dynamicform^=dynamicform]', $newclone);
 
-            $elem.closest('.' + widgetOptions.widgetContainer).triggerHandler(events.beforeInsert, $newclone);
+            $elem.closest('.' + widgetOptions.widgetContainer).trigger(events.beforeInsert, $newclone);
 
             if (widgetOptions.insertPosition === 'top') {
                 $elem.closest('.' + widgetOptions.widgetContainer).find(widgetOptions.widgetBody).prepend($newclone);
@@ -166,7 +157,7 @@
             $elem.closest('.' + widgetOptions.widgetContainer).trigger(events.afterInsert, $newclone);
         } else {
             // trigger a custom event for hooking
-            $elem.closest('.' + widgetOptions.widgetContainer).triggerHandler(events.limitReached, widgetOptions.limit);
+            $elem.closest('.' + widgetOptions.widgetContainer).trigger(events.limitReached, widgetOptions.limit);
         }
     };
 
@@ -225,14 +216,15 @@
             $todelete = $elem.closest(widgetOptions.widgetItem);
 
             // trigger a custom event for hooking
-            var eventResult = $('.' + widgetOptions.widgetContainer).triggerHandler(events.beforeDelete, $todelete);
-            if (eventResult !== false) {
+            const event = jQuery.Event(events.beforeDelete);
+            $('.' + widgetOptions.widgetContainer).trigger(event, $todelete);
+            if (event.result !== false) {
                 _removeValidations($todelete, widgetOptions, count);
                 $todelete.remove();
                 _updateAttributes(widgetOptions);
                 _restoreSpecialJs(widgetOptions);
                 _fixFormValidaton(widgetOptions);
-                $('.' + widgetOptions.widgetContainer).triggerHandler(events.afterDelete);
+                $('.' + widgetOptions.widgetContainer).trigger(events.afterDelete);
             }
         }
     };
